@@ -35,9 +35,11 @@ function Dashboard() {
 
   const createNew = async () => {
     setCreating(true);
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) { setCreating(false); toast.error("Not signed in"); return; }
     const { data, error } = await supabase
       .from("resumes")
-      .insert({ title: "Untitled resume", data: {} })
+      .insert({ title: "Untitled resume", data: {}, user_id: userData.user.id })
       .select("id")
       .single();
     setCreating(false);
