@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,17 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Save, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, Download, Save, Sparkles, Loader2, Check } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { generateResume, type ResumeInput } from "@/lib/resume.functions";
-
-type AIContent = {
-  summary?: string;
-  skills?: string[];
-  experience?: Array<{ role?: string; company?: string; period?: string; bullets?: string[] }>;
-  projects?: Array<{ name?: string; description?: string; bullets?: string[] }>;
-  education?: Array<{ school?: string; degree?: string; period?: string; details?: string }>;
-};
+import { renderTemplate, TEMPLATES, type AIContent, type TemplateId } from "@/lib/resume-templates";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/builder/$id")({
   component: Builder,
@@ -43,6 +37,7 @@ function Builder() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [template, setTemplate] = useState<TemplateId>("classic");
 
   useEffect(() => {
     (async () => {
@@ -121,7 +116,7 @@ function Builder() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <FormPanel input={input} setInput={setInput} />
-        <PreviewPanel ai={ai} input={input} generating={generating} />
+        <PreviewPanel ai={ai} input={input} generating={generating} template={template} setTemplate={setTemplate} />
       </div>
     </main>
   );
@@ -200,86 +195,54 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   );
 }
 
-function PreviewPanel({ ai, input, generating }: { ai: AIContent | null; input: ResumeInput; generating: boolean }) {
-  const p = input.personal;
+function PreviewPanel({
+  ai, input, generating, template, setTemplate,
+}: {
+  ai: AIContent | null;
+  input: ResumeInput;
+  generating: boolean;
+  template: TemplateId;
+  setTemplate: (t: TemplateId) => void;
+}) {
+  const effectiveAi: AIContent = ai ?? {
+    summary: input.personal.summary || undefined,
+  };
   const showPlaceholder = !ai;
-
-  const contact = useMemo(() => [p.email, p.phone, p.location, p.website].filter(Boolean).join(" · "), [p]);
 
   return (
     <div className="lg:sticky lg:top-24 lg:h-fit">
-      <div id="resume-print" className="rounded-xl border border-border bg-white p-10 text-[13px] leading-relaxed text-slate-900 shadow-soft">
+      <div className="mb-3 flex flex-wrap items-center gap-2 print:hidden">
+        <span className="mr-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">Template</span>
+        {TEMPLATES.map((t) => {
+          const active = t.id === template;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setTemplate(t.id)}
+              title={t.description}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition",
+                active
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-surface text-foreground hover:border-primary/50",
+              )}
+            >
+              {active && <Check className="h-3 w-3" />}
+              {t.name}
+            </button>
+          );
+        })}
+      </div>
+
+      <div id="resume-print" className="overflow-hidden rounded-xl border border-border bg-white p-10 shadow-soft">
         {generating && (
           <div className="mb-4 rounded-md bg-accent/40 px-3 py-2 text-xs text-accent-foreground">
             <Loader2 className="mr-1.5 inline h-3 w-3 animate-spin" /> Generating with AI…
           </div>
         )}
 
-        <header className="border-b border-slate-200 pb-4">
-          <h1 className="font-display text-3xl text-slate-900">{p.fullName || "Your Name"}</h1>
-          {p.title && <p className="mt-0.5 text-sm text-slate-600">{p.title}</p>}
-          {contact && <p className="mt-1 text-xs text-slate-500">{contact}</p>}
-        </header>
-
-        {(ai?.summary || p.summary) && (
-          <Section title="Summary">
-            <p>{ai?.summary || p.summary}</p>
-          </Section>
-        )}
-
-        {ai?.skills && ai.skills.length > 0 && (
-          <Section title="Skills">
-            <p>{ai.skills.join(" · ")}</p>
-          </Section>
-        )}
-
-        {ai?.experience && ai.experience.length > 0 && (
-          <Section title="Experience">
-            {ai.experience.map((e, i) => (
-              <div key={i} className="mt-3 first:mt-0">
-                <div className="flex items-baseline justify-between gap-4">
-                  <p className="font-semibold text-slate-900">{e.role}{e.company ? ` · ${e.company}` : ""}</p>
-                  {e.period && <p className="text-xs text-slate-500">{e.period}</p>}
-                </div>
-                {e.bullets && (
-                  <ul className="mt-1 list-disc space-y-1 pl-5 text-slate-700">
-                    {e.bullets.map((b, j) => <li key={j}>{b}</li>)}
-                  </ul>
-                )}
-              </div>
-            ))}
-          </Section>
-        )}
-
-        {ai?.projects && ai.projects.length > 0 && (
-          <Section title="Projects">
-            {ai.projects.map((pr, i) => (
-              <div key={i} className="mt-3 first:mt-0">
-                <p className="font-semibold text-slate-900">{pr.name}</p>
-                {pr.description && <p className="text-slate-700">{pr.description}</p>}
-                {pr.bullets && (
-                  <ul className="mt-1 list-disc space-y-1 pl-5 text-slate-700">
-                    {pr.bullets.map((b, j) => <li key={j}>{b}</li>)}
-                  </ul>
-                )}
-              </div>
-            ))}
-          </Section>
-        )}
-
-        {ai?.education && ai.education.length > 0 && (
-          <Section title="Education">
-            {ai.education.map((ed, i) => (
-              <div key={i} className="mt-2 first:mt-0">
-                <div className="flex items-baseline justify-between gap-4">
-                  <p className="font-semibold text-slate-900">{ed.degree}{ed.school ? ` · ${ed.school}` : ""}</p>
-                  {ed.period && <p className="text-xs text-slate-500">{ed.period}</p>}
-                </div>
-                {ed.details && <p className="text-slate-700">{ed.details}</p>}
-              </div>
-            ))}
-          </Section>
-        )}
+        {renderTemplate(template, { ai: effectiveAi, input })}
 
         {showPlaceholder && (
           <div className="mt-6 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
@@ -292,11 +255,3 @@ function PreviewPanel({ ai, input, generating }: { ai: AIContent | null; input: 
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="mt-5">
-      <h2 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-500">{title}</h2>
-      <div className="mt-2">{children}</div>
-    </section>
-  );
-}
