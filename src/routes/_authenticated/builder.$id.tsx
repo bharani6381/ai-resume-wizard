@@ -37,6 +37,7 @@ function Builder() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [template, setTemplate] = useState<TemplateId>("classic");
 
   useEffect(() => {
     (async () => {
