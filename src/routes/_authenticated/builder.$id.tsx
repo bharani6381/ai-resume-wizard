@@ -116,7 +116,7 @@ function Builder() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <FormPanel input={input} setInput={setInput} />
-        <PreviewPanel ai={ai} input={input} generating={generating} />
+        <PreviewPanel ai={ai} input={input} generating={generating} template={template} setTemplate={setTemplate} />
       </div>
     </main>
   );
