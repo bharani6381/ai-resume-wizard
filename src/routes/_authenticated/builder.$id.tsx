@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,17 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Save, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, Download, Save, Sparkles, Loader2, Check } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { generateResume, type ResumeInput } from "@/lib/resume.functions";
-
-type AIContent = {
-  summary?: string;
-  skills?: string[];
-  experience?: Array<{ role?: string; company?: string; period?: string; bullets?: string[] }>;
-  projects?: Array<{ name?: string; description?: string; bullets?: string[] }>;
-  education?: Array<{ school?: string; degree?: string; period?: string; details?: string }>;
-};
+import { renderTemplate, TEMPLATES, type AIContent, type TemplateId } from "@/lib/resume-templates";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/builder/$id")({
   component: Builder,
