@@ -11,6 +11,7 @@ import { ArrowLeft, Download, Save, Sparkles, Loader2, Check } from "lucide-reac
 import { useServerFn } from "@tanstack/react-start";
 import { generateResume, type ResumeInput } from "@/lib/resume.functions";
 import { renderTemplate, TEMPLATES, type AIContent, type TemplateId } from "@/lib/resume-templates";
+import { ATSPanel } from "@/components/ATSPanel";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/builder/$id")({
@@ -115,7 +116,10 @@ function Builder() {
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <FormPanel input={input} setInput={setInput} />
+        <div className="space-y-6">
+          <ATSPanel input={input} ai={ai} />
+          <FormPanel input={input} setInput={setInput} />
+        </div>
         <PreviewPanel ai={ai} input={input} generating={generating} template={template} setTemplate={setTemplate} />
       </div>
     </main>
