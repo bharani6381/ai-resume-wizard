@@ -1,11 +1,23 @@
 import { useMemo, useState } from "react";
-import { Check, X, ChevronDown, ChevronUp, ShieldCheck } from "lucide-react";
+import { Check, X, ChevronDown, ChevronUp, ShieldCheck, ArrowRight, Sparkles, Loader2 } from "lucide-react";
 import type { ResumeInput } from "@/lib/resume.functions";
 import type { AIContent } from "@/lib/resume-templates";
-import { scoreResume } from "@/lib/ats-score";
+import { scoreResume, type ATSTab } from "@/lib/ats-score";
 import { cn } from "@/lib/utils";
 
-export function ATSPanel({ input, ai }: { input: ResumeInput; ai: AIContent | null }) {
+export function ATSPanel({
+  input,
+  ai,
+  onFocusField,
+  onGenerate,
+  generating = false,
+}: {
+  input: ResumeInput;
+  ai: AIContent | null;
+  onFocusField?: (tab: ATSTab, fieldId?: string) => void;
+  onGenerate?: () => void;
+  generating?: boolean;
+}) {
   const report = useMemo(() => scoreResume(input, ai), [input, ai]);
   const [expanded, setExpanded] = useState(true);
   const [showAll, setShowAll] = useState(false);
@@ -57,11 +69,39 @@ export function ATSPanel({ input, ai }: { input: ResumeInput; ai: AIContent | nu
                 >
                   {c.passed ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
                 </span>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className={cn("text-sm", c.passed ? "text-foreground" : "font-medium text-foreground")}>
                     {c.label}
                   </p>
-                  {!c.passed && <p className="mt-0.5 text-xs text-muted-foreground">{c.hint}</p>}
+                  {!c.passed && (
+                    <>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{c.hint}</p>
+                      {c.action && (
+                        <div className="mt-1.5">
+                          {c.action.kind === "focus" ? (
+                            <button
+                              type="button"
+                              onClick={() => onFocusField?.(c.action!.kind === "focus" ? c.action!.tab : "personal", c.action!.kind === "focus" ? c.action!.fieldId : undefined)}
+                              className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs font-medium text-foreground transition hover:border-primary/50 hover:text-primary"
+                            >
+                              {c.action.label}
+                              <ArrowRight className="h-3 w-3" />
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => onGenerate?.()}
+                              disabled={generating}
+                              className="inline-flex items-center gap-1 rounded-md border border-primary/30 bg-primary/10 px-2 py-1 text-xs font-medium text-primary transition hover:bg-primary/15 disabled:opacity-60"
+                            >
+                              {generating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                              {c.action.label}
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               </li>
             ))}
