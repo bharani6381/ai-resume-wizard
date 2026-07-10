@@ -12,6 +12,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { generateResume, type ResumeInput } from "@/lib/resume.functions";
 import { renderTemplate, TEMPLATES, type AIContent, type TemplateId } from "@/lib/resume-templates";
 import { ATSPanel } from "@/components/ATSPanel";
+import type { ATSTab } from "@/lib/ats-score";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/builder/$id")({
