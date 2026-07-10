@@ -1,12 +1,19 @@
 import type { ResumeInput } from "./resume.functions";
 import type { AIContent } from "./resume-templates";
 
+export type ATSTab = "personal" | "education" | "skills" | "experience" | "projects";
+
+export type ATSAction =
+  | { kind: "focus"; tab: ATSTab; fieldId?: string; label: string }
+  | { kind: "generate"; label: string };
+
 export type ATSCheck = {
   id: string;
   label: string;
   hint: string;
   passed: boolean;
   weight: number; // contribution to score
+  action?: ATSAction;
 };
 
 export type ATSReport = {
