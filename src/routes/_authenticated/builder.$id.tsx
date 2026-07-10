@@ -12,6 +12,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { generateResume, type ResumeInput } from "@/lib/resume.functions";
 import { renderTemplate, TEMPLATES, type AIContent, type TemplateId } from "@/lib/resume-templates";
 import { ATSPanel } from "@/components/ATSPanel";
+import type { ATSTab } from "@/lib/ats-score";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/builder/$id")({
@@ -39,6 +40,26 @@ function Builder() {
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [template, setTemplate] = useState<TemplateId>("classic");
+  const [tab, setTab] = useState<ATSTab>("personal");
+
+  const focusField = (nextTab: ATSTab, fieldId?: string) => {
+    setTab(nextTab);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (fieldId) {
+          const el = document.getElementById(fieldId) as HTMLElement | null;
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+            if ("focus" in el && typeof (el as HTMLInputElement).focus === "function") {
+              (el as HTMLInputElement).focus({ preventScroll: true });
+            }
+            return;
+          }
+        }
+        document.getElementById("form-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+  };
 
   useEffect(() => {
     (async () => {
@@ -117,8 +138,8 @@ function Builder() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <div className="space-y-6">
-          <ATSPanel input={input} ai={ai} />
-          <FormPanel input={input} setInput={setInput} />
+          <ATSPanel input={input} ai={ai} onFocusField={focusField} onGenerate={generate} generating={generating} />
+          <FormPanel input={input} setInput={setInput} tab={tab} setTab={setTab} />
         </div>
         <PreviewPanel ai={ai} input={input} generating={generating} template={template} setTemplate={setTemplate} />
       </div>
@@ -126,15 +147,25 @@ function Builder() {
   );
 }
 
-function FormPanel({ input, setInput }: { input: ResumeInput; setInput: (v: ResumeInput) => void }) {
+function FormPanel({
+  input,
+  setInput,
+  tab,
+  setTab,
+}: {
+  input: ResumeInput;
+  setInput: (v: ResumeInput) => void;
+  tab: ATSTab;
+  setTab: (t: ATSTab) => void;
+}) {
   const p = input.personal;
   const set = <K extends keyof ResumeInput>(k: K, v: ResumeInput[K]) => setInput({ ...input, [k]: v });
   const setP = <K extends keyof ResumeInput["personal"]>(k: K, v: string) =>
     setInput({ ...input, personal: { ...p, [k]: v } });
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-6 shadow-soft print:hidden">
-      <Tabs defaultValue="personal">
+    <div id="form-panel" className="rounded-xl border border-border bg-surface p-6 shadow-soft print:hidden">
+      <Tabs value={tab} onValueChange={(v) => setTab(v as ATSTab)}>
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="personal">You</TabsTrigger>
           <TabsTrigger value="education">Edu</TabsTrigger>
@@ -145,42 +176,42 @@ function FormPanel({ input, setInput }: { input: ResumeInput; setInput: (v: Resu
 
         <TabsContent value="personal" className="mt-6 space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Full name"><Input value={p.fullName} onChange={(e) => setP("fullName", e.target.value)} /></Field>
-            <Field label="Headline / title"><Input placeholder="Frontend Engineer" value={p.title} onChange={(e) => setP("title", e.target.value)} /></Field>
-            <Field label="Email"><Input type="email" value={p.email} onChange={(e) => setP("email", e.target.value)} /></Field>
-            <Field label="Phone"><Input value={p.phone} onChange={(e) => setP("phone", e.target.value)} /></Field>
-            <Field label="Location"><Input value={p.location} onChange={(e) => setP("location", e.target.value)} /></Field>
-            <Field label="Website / LinkedIn"><Input value={p.website} onChange={(e) => setP("website", e.target.value)} /></Field>
+            <Field label="Full name"><Input id="field-personal-fullName" value={p.fullName} onChange={(e) => setP("fullName", e.target.value)} /></Field>
+            <Field label="Headline / title"><Input id="field-personal-title" placeholder="Frontend Engineer" value={p.title} onChange={(e) => setP("title", e.target.value)} /></Field>
+            <Field label="Email"><Input id="field-personal-email" type="email" value={p.email} onChange={(e) => setP("email", e.target.value)} /></Field>
+            <Field label="Phone"><Input id="field-personal-phone" value={p.phone} onChange={(e) => setP("phone", e.target.value)} /></Field>
+            <Field label="Location"><Input id="field-personal-location" value={p.location} onChange={(e) => setP("location", e.target.value)} /></Field>
+            <Field label="Website / LinkedIn"><Input id="field-personal-website" value={p.website} onChange={(e) => setP("website", e.target.value)} /></Field>
           </div>
           <Field label="Short summary (optional)">
-            <Textarea rows={3} placeholder="A sentence or two about yourself" value={p.summary} onChange={(e) => setP("summary", e.target.value)} />
+            <Textarea id="field-personal-summary" rows={3} placeholder="A sentence or two about yourself" value={p.summary} onChange={(e) => setP("summary", e.target.value)} />
           </Field>
         </TabsContent>
 
         <TabsContent value="education" className="mt-6">
           <Field label="Education" hint="Schools, degrees, years, GPA. Free-form.">
-            <Textarea rows={10} value={input.education} onChange={(e) => set("education", e.target.value)}
+            <Textarea id="field-education" rows={10} value={input.education} onChange={(e) => set("education", e.target.value)}
               placeholder="B.Tech Computer Science, XYZ University, 2021–2025, GPA 8.4/10&#10;Coursework: Data Structures, Databases, ML" />
           </Field>
         </TabsContent>
 
         <TabsContent value="skills" className="mt-6">
           <Field label="Skills" hint="Comma-separated or bullets — AI will organize.">
-            <Textarea rows={8} value={input.skills} onChange={(e) => set("skills", e.target.value)}
+            <Textarea id="field-skills" rows={8} value={input.skills} onChange={(e) => set("skills", e.target.value)}
               placeholder="JavaScript, TypeScript, React, Node, Python, SQL, Figma, Git" />
           </Field>
         </TabsContent>
 
         <TabsContent value="experience" className="mt-6">
           <Field label="Work experience" hint="Role, company, dates, and rough notes on what you did.">
-            <Textarea rows={12} value={input.experience} onChange={(e) => set("experience", e.target.value)}
+            <Textarea id="field-experience" rows={12} value={input.experience} onChange={(e) => set("experience", e.target.value)}
               placeholder="Software Intern at Acme (Jun–Aug 2024)&#10;- built internal dashboard, improved report time&#10;- shipped 2 features to prod" />
           </Field>
         </TabsContent>
 
         <TabsContent value="projects" className="mt-6">
           <Field label="Projects" hint="Name, one-line description, and any results.">
-            <Textarea rows={12} value={input.projects} onChange={(e) => set("projects", e.target.value)}
+            <Textarea id="field-projects" rows={12} value={input.projects} onChange={(e) => set("projects", e.target.value)}
               placeholder="FestApp — React event platform, 2k users during college fest&#10;Chatbot — Python + OpenAI, helped 500 students find courses" />
           </Field>
         </TabsContent>
