@@ -219,59 +219,6 @@ function FormPanel({
     </div>
   );
 }
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="personal">You</TabsTrigger>
-          <TabsTrigger value="education">Edu</TabsTrigger>
-          <TabsTrigger value="skills">Skills</TabsTrigger>
-          <TabsTrigger value="experience">Work</TabsTrigger>
-          <TabsTrigger value="projects">Projects</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="personal" className="mt-6 space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Full name"><Input value={p.fullName} onChange={(e) => setP("fullName", e.target.value)} /></Field>
-            <Field label="Headline / title"><Input placeholder="Frontend Engineer" value={p.title} onChange={(e) => setP("title", e.target.value)} /></Field>
-            <Field label="Email"><Input type="email" value={p.email} onChange={(e) => setP("email", e.target.value)} /></Field>
-            <Field label="Phone"><Input value={p.phone} onChange={(e) => setP("phone", e.target.value)} /></Field>
-            <Field label="Location"><Input value={p.location} onChange={(e) => setP("location", e.target.value)} /></Field>
-            <Field label="Website / LinkedIn"><Input value={p.website} onChange={(e) => setP("website", e.target.value)} /></Field>
-          </div>
-          <Field label="Short summary (optional)">
-            <Textarea rows={3} placeholder="A sentence or two about yourself" value={p.summary} onChange={(e) => setP("summary", e.target.value)} />
-          </Field>
-        </TabsContent>
-
-        <TabsContent value="education" className="mt-6">
-          <Field label="Education" hint="Schools, degrees, years, GPA. Free-form.">
-            <Textarea rows={10} value={input.education} onChange={(e) => set("education", e.target.value)}
-              placeholder="B.Tech Computer Science, XYZ University, 2021–2025, GPA 8.4/10&#10;Coursework: Data Structures, Databases, ML" />
-          </Field>
-        </TabsContent>
-
-        <TabsContent value="skills" className="mt-6">
-          <Field label="Skills" hint="Comma-separated or bullets — AI will organize.">
-            <Textarea rows={8} value={input.skills} onChange={(e) => set("skills", e.target.value)}
-              placeholder="JavaScript, TypeScript, React, Node, Python, SQL, Figma, Git" />
-          </Field>
-        </TabsContent>
-
-        <TabsContent value="experience" className="mt-6">
-          <Field label="Work experience" hint="Role, company, dates, and rough notes on what you did.">
-            <Textarea rows={12} value={input.experience} onChange={(e) => set("experience", e.target.value)}
-              placeholder="Software Intern at Acme (Jun–Aug 2024)&#10;- built internal dashboard, improved report time&#10;- shipped 2 features to prod" />
-          </Field>
-        </TabsContent>
-
-        <TabsContent value="projects" className="mt-6">
-          <Field label="Projects" hint="Name, one-line description, and any results.">
-            <Textarea rows={12} value={input.projects} onChange={(e) => set("projects", e.target.value)}
-              placeholder="FestApp — React event platform, 2k users during college fest&#10;Chatbot — Python + OpenAI, helped 500 students find courses" />
-          </Field>
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
-}
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
