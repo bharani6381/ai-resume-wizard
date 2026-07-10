@@ -138,8 +138,8 @@ function Builder() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <div className="space-y-6">
-          <ATSPanel input={input} ai={ai} />
-          <FormPanel input={input} setInput={setInput} />
+          <ATSPanel input={input} ai={ai} onFocusField={focusField} onGenerate={generate} generating={generating} />
+          <FormPanel input={input} setInput={setInput} tab={tab} setTab={setTab} />
         </div>
         <PreviewPanel ai={ai} input={input} generating={generating} template={template} setTemplate={setTemplate} />
       </div>
