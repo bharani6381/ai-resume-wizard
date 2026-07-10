@@ -40,6 +40,26 @@ function Builder() {
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [template, setTemplate] = useState<TemplateId>("classic");
+  const [tab, setTab] = useState<ATSTab>("personal");
+
+  const focusField = (nextTab: ATSTab, fieldId?: string) => {
+    setTab(nextTab);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (fieldId) {
+          const el = document.getElementById(fieldId) as HTMLElement | null;
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+            if ("focus" in el && typeof (el as HTMLInputElement).focus === "function") {
+              (el as HTMLInputElement).focus({ preventScroll: true });
+            }
+            return;
+          }
+        }
+        document.getElementById("form-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+  };
 
   useEffect(() => {
     (async () => {
