@@ -39,7 +39,7 @@ function Builder() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [template, setTemplate] = useState<TemplateId>("classic");
+  const [template, setTemplate] = useState<TemplateId>("modern");
   const [tab, setTab] = useState<ATSTab>("personal");
 
   const focusField = (nextTab: ATSTab, fieldId?: string) => {
