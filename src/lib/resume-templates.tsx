@@ -323,12 +323,86 @@ export function ElegantTemplate({ ai, input }: Props) {
   }
 }
 
+/* ---------- ATS-Friendly ---------- */
+export function AtsTemplate({ ai, input }: Props) {
+  const p = input.personal;
+  const H = ({ children }: { children: React.ReactNode }) => (
+    <h2 className="mt-4 text-[12px] font-bold uppercase tracking-wide text-black">{children}</h2>
+  );
+  return (
+    <div className="font-sans text-[12.5px] leading-relaxed text-black">
+      <header>
+        <h1 className="text-2xl font-bold">{p.fullName || "Your Name"}</h1>
+        {p.title && <p>{p.title}</p>}
+        <p className="mt-1">{[p.email, p.phone, p.location, p.website].filter(Boolean).join(" | ")}</p>
+      </header>
+      {(ai.summary || p.summary) && (
+        <>
+          <H>Professional Summary</H>
+          <p>{ai.summary || p.summary}</p>
+        </>
+      )}
+      {ai.skills?.length ? (
+        <>
+          <H>Skills</H>
+          <p>{ai.skills.join(", ")}</p>
+        </>
+      ) : null}
+      {ai.experience?.length ? (
+        <>
+          <H>Professional Experience</H>
+          {ai.experience.map((e, i) => (
+            <div key={i} className="mt-2">
+              <p className="font-bold">{e.role}</p>
+              <p>{[e.company, e.period].filter(Boolean).join(" | ")}</p>
+              {e.bullets && (
+                <ul className="mt-1 list-disc pl-5">
+                  {e.bullets.map((b, j) => <li key={j}>{b}</li>)}
+                </ul>
+              )}
+            </div>
+          ))}
+        </>
+      ) : null}
+      {ai.projects?.length ? (
+        <>
+          <H>Projects</H>
+          {ai.projects.map((pr, i) => (
+            <div key={i} className="mt-2">
+              <p className="font-bold">{pr.name}</p>
+              {pr.description && <p>{pr.description}</p>}
+              {pr.bullets && (
+                <ul className="mt-1 list-disc pl-5">
+                  {pr.bullets.map((b, j) => <li key={j}>{b}</li>)}
+                </ul>
+              )}
+            </div>
+          ))}
+        </>
+      ) : null}
+      {ai.education?.length ? (
+        <>
+          <H>Education</H>
+          {ai.education.map((ed, i) => (
+            <div key={i} className="mt-2">
+              <p className="font-bold">{ed.degree}</p>
+              <p>{[ed.school, ed.period].filter(Boolean).join(" | ")}</p>
+              {ed.details && <p>{ed.details}</p>}
+            </div>
+          ))}
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 export function renderTemplate(id: TemplateId, props: Props) {
   switch (id) {
     case "modern": return <ModernTemplate {...props} />;
-    case "compact": return <CompactTemplate {...props} />;
-    case "elegant": return <ElegantTemplate {...props} />;
-    case "classic":
+    case "minimal": return <CompactTemplate {...props} />;
+    case "creative": return <ElegantTemplate {...props} />;
+    case "ats": return <AtsTemplate {...props} />;
+    case "professional":
     default: return <ClassicTemplate {...props} />;
   }
 }
