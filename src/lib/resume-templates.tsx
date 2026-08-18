@@ -8,14 +8,61 @@ export type AIContent = {
   education?: Array<{ school?: string; degree?: string; period?: string; details?: string }>;
 };
 
-export type TemplateId = "classic" | "modern" | "compact" | "elegant";
+export type TemplateId = "modern" | "professional" | "minimal" | "creative" | "ats";
 
-export const TEMPLATES: { id: TemplateId; name: string; description: string }[] = [
-  { id: "classic", name: "Classic", description: "Traditional serif, ATS-friendly" },
-  { id: "modern", name: "Modern", description: "Sidebar layout with accent color" },
-  { id: "compact", name: "Compact", description: "Dense single-column for one page" },
-  { id: "elegant", name: "Elegant", description: "Centered header with refined type" },
+export const TEMPLATES: { id: TemplateId; name: string; description: string; accent: string }[] = [
+  { id: "modern", name: "Modern", description: "Dark sidebar with skills and education at a glance", accent: "from-slate-900 to-slate-600" },
+  { id: "professional", name: "Professional", description: "Traditional serif layout trusted by recruiters", accent: "from-stone-700 to-stone-400" },
+  { id: "minimal", name: "Minimal", description: "Dense, clean single column that fits on one page", accent: "from-zinc-500 to-zinc-300" },
+  { id: "creative", name: "Creative", description: "Centered header with refined, editorial typography", accent: "from-rose-500 to-amber-400" },
+  { id: "ats", name: "ATS-Friendly", description: "Plain structure, no columns — maximum parser safety", accent: "from-emerald-600 to-teal-400" },
 ];
+
+/** Sample content used for template gallery previews. */
+export const SAMPLE_INPUT: ResumeInput = {
+  personal: {
+    fullName: "Alex Morgan",
+    title: "Frontend Engineer",
+    email: "alex@example.com",
+    phone: "+1 555 0142",
+    location: "Bengaluru, IN",
+    website: "alexmorgan.dev",
+    summary: "Frontend engineer focused on accessible, fast product interfaces.",
+  },
+  education: "",
+  skills: "",
+  experience: "",
+  projects: "",
+};
+
+export const SAMPLE_AI: AIContent = {
+  summary:
+    "Frontend engineer with 4 years building React products used by 100k+ people. Ships accessible interfaces and cuts load times through measurement.",
+  skills: ["React", "TypeScript", "Tailwind CSS", "Node.js", "Testing", "Accessibility"],
+  experience: [
+    {
+      role: "Frontend Engineer",
+      company: "Northwind",
+      period: "2023 — Present",
+      bullets: [
+        "Rebuilt checkout flow, lifting conversion 18% in one quarter.",
+        "Reduced bundle size by 42% through route-level code splitting.",
+      ],
+    },
+    {
+      role: "Junior Developer",
+      company: "Bluepeak",
+      period: "2021 — 2023",
+      bullets: ["Delivered 12 customer-facing features across 3 product teams."],
+    },
+  ],
+  projects: [
+    { name: "Resumly", description: "AI resume builder", bullets: ["2k users in first month."] },
+  ],
+  education: [
+    { school: "State University", degree: "B.Tech, Computer Science", period: "2017 — 2021", details: "GPA 8.6/10" },
+  ],
+};
 
 type Props = { ai: AIContent; input: ResumeInput };
 
