@@ -152,6 +152,14 @@ function Builder() {
         </div>
       </div>
 
+      <TemplateGallery
+        className="mt-6"
+        selected={template}
+        onSelect={selectTemplate}
+        ai={ai}
+        input={input}
+      />
+
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <div className="space-y-6">
           <ATSPanel input={input} ai={ai} onFocusField={focusField} onGenerate={generate} generating={generating} />
@@ -167,13 +175,6 @@ function Builder() {
         />
       </div>
 
-      <TemplateGallery
-        className="mt-6"
-        selected={template}
-        onSelect={selectTemplate}
-        ai={ai}
-        input={input}
-      />
     </main>
   );
 }
