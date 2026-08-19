@@ -7,11 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Save, Sparkles, Loader2, Check } from "lucide-react";
+import { ArrowLeft, Download, Save, Sparkles, Loader2, Check, RotateCcw } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { generateResume, type ResumeInput } from "@/lib/resume.functions";
 import { renderTemplate, TEMPLATES, type AIContent, type TemplateId } from "@/lib/resume-templates";
 import { ATSPanel } from "@/components/ATSPanel";
+import { TemplateGallery } from "@/components/TemplateGallery";
+import { TemplateCompare } from "@/components/TemplateCompare";
 import type { ATSTab } from "@/lib/ats-score";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +21,8 @@ export const Route = createFileRoute("/_authenticated/builder/$id")({
   component: Builder,
   head: () => ({ meta: [{ title: "Resume builder · Resumly" }, { name: "robots", content: "noindex" }] }),
 });
+
+const DEFAULT_TEMPLATE: TemplateId = "modern";
 
 const emptyInput: ResumeInput = {
   personal: { fullName: "", title: "", email: "", phone: "", location: "", website: "", summary: "" },
@@ -39,7 +43,7 @@ function Builder() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [template, setTemplate] = useState<TemplateId>("modern");
+  const [template, setTemplate] = useState<TemplateId>(DEFAULT_TEMPLATE);
   const [tab, setTab] = useState<ATSTab>("personal");
 
   const focusField = (nextTab: ATSTab, fieldId?: string) => {
@@ -72,15 +76,27 @@ function Builder() {
         setInput({ ...emptyInput, ...(data.data as Partial<ResumeInput>) });
       }
       if (data.ai_content) setAi(data.ai_content as AIContent);
+      if (data.template) setTemplate(data.template as TemplateId);
       setLoading(false);
     })();
   }, [id, navigate]);
+
+  const selectTemplate = async (next: TemplateId) => {
+    setTemplate(next);
+    const { error } = await supabase.from("resumes").update({ template: next }).eq("id", id);
+    if (error) toast.error(error.message);
+  };
+
+  const resetTemplate = async () => {
+    await selectTemplate(DEFAULT_TEMPLATE);
+    toast.success("Template reset to default — your content is unchanged");
+  };
 
   const save = async () => {
     setSaving(true);
     const { error } = await supabase
       .from("resumes")
-      .update({ title, data: input, ai_content: ai ?? undefined })
+      .update({ title, data: input, ai_content: ai ?? undefined, template })
       .eq("id", id);
     setSaving(false);
     if (error) return toast.error(error.message);
@@ -92,7 +108,7 @@ function Builder() {
     try {
       const result = (await runAI({ data: input })) as AIContent;
       setAi(result);
-      await supabase.from("resumes").update({ title, data: input, ai_content: result }).eq("id", id);
+      await supabase.from("resumes").update({ title, data: input, ai_content: result, template }).eq("id", id);
       toast.success("Resume generated");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "AI generation failed");
@@ -141,8 +157,23 @@ function Builder() {
           <ATSPanel input={input} ai={ai} onFocusField={focusField} onGenerate={generate} generating={generating} />
           <FormPanel input={input} setInput={setInput} tab={tab} setTab={setTab} />
         </div>
-        <PreviewPanel ai={ai} input={input} generating={generating} template={template} setTemplate={setTemplate} />
+        <PreviewPanel
+          ai={ai}
+          input={input}
+          generating={generating}
+          template={template}
+          setTemplate={selectTemplate}
+          onResetTemplate={resetTemplate}
+        />
       </div>
+
+      <TemplateGallery
+        className="mt-6"
+        selected={template}
+        onSelect={selectTemplate}
+        ai={ai}
+        input={input}
+      />
     </main>
   );
 }
@@ -231,13 +262,14 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 }
 
 function PreviewPanel({
-  ai, input, generating, template, setTemplate,
+  ai, input, generating, template, setTemplate, onResetTemplate,
 }: {
   ai: AIContent | null;
   input: ResumeInput;
   generating: boolean;
   template: TemplateId;
   setTemplate: (t: TemplateId) => void;
+  onResetTemplate: () => void;
 }) {
   const effectiveAi: AIContent = ai ?? {
     summary: input.personal.summary || undefined,
@@ -268,6 +300,10 @@ function PreviewPanel({
             </button>
           );
         })}
+        <TemplateCompare selected={template} onSelect={setTemplate} ai={ai} input={input} />
+        <Button variant="ghost" size="sm" onClick={onResetTemplate} disabled={template === DEFAULT_TEMPLATE}>
+          <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Reset template
+        </Button>
       </div>
 
       <div id="resume-print" className="overflow-hidden rounded-xl border border-border bg-white p-10 shadow-soft">
